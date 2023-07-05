@@ -104,7 +104,7 @@ export default function SignIn() {
             </Avatar>
           </Slide>
           <Typography component="h1" variant="h5">
-            Tata System
+            Thata System
           </Typography>
           <Box
             component="form"
@@ -115,6 +115,7 @@ export default function SignIn() {
             <TextField
               variant="outlined"
               margin="normal"
+              color="secondary"
               required
               fullWidth
               id="username"
@@ -128,6 +129,7 @@ export default function SignIn() {
             <TextField
               variant="outlined"
               margin="normal"
+              color="secondary"
               required
               fullWidth
               name="password"
