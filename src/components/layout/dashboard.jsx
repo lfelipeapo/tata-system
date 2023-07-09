@@ -20,6 +20,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ProtectedRoute from "../ProtectedRoute";
 import DrawerList from "../DrawerList";
+import UserAvatar from '../UserAvatar';
 
 function Copyright(props) {
   return (
@@ -30,7 +31,7 @@ function Copyright(props) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="http://localhost:3000">
+      <Link color="inherit" href="http://192.168.15.119:3000">
         ThataSystem
       </Link>{" "}
       {new Date().getFullYear()}
@@ -132,9 +133,11 @@ export default function Dashboard({children}) {
                 >
                   Thata System
                 </Typography>
-                <IconButton color="inherit" onClick={handleLogout}>
+                {/* <IconButton color="inherit" onClick={handleLogout}> */}
+                <UserAvatar>
                   <ExitToAppIcon />
-                </IconButton>
+                </UserAvatar>
+                {/* </IconButton> */}
               </Toolbar>
             </AppBar>
             <Drawer variant="permanent" open={open}>

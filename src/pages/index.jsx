@@ -31,7 +31,7 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/user/authenticate`, {
+      const response = await fetch(`http://192.168.15.119:5000/user/authenticate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,6 +45,7 @@ export default function SignIn() {
       const data = await response.json();
 
       if (response.ok) {
+        Cookies.set("ui", data.user_id);
         Cookies.set("token", data.token);
         router.push("/dashboard");
       } else {
@@ -161,7 +162,7 @@ export default function SignIn() {
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="#" variant="body2">
+                <Link href="/cadastro" variant="body2">
                   {"Você não tem usuário. Crie um!"}
                 </Link>
               </Grid>
