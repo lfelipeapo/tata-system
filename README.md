@@ -1,2 +1,2 @@
-# tata-system
+# Thata System
 Front-End do projeto TataSystem apresentado como MVP para a pós graduação PUC-Rio
