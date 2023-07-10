@@ -70,7 +70,7 @@ const Users = () => {
   };
 
   const fetchUsers = () => {
-    fetch("http://192.168.15.119:5000/users")
+    fetch("http://localhost:5000/users")
       .then((response) => {
         if (response.status === 404) {
           setUsers([]);
@@ -151,7 +151,7 @@ const Users = () => {
   };
 
   const handleSave = async () => {
-    const response = await fetch(`http://192.168.15.119:5000/user/create`, {
+    const response = await fetch(`http://localhost:5000/user/create`, {
       method: "POST",
       body: JSON.stringify(newUser),
       headers: {
@@ -431,7 +431,7 @@ const Users = () => {
                               onClick={async () => {
                                 let rowToUpdate = edits[row.id] || row;
                                 const response = await fetch(
-                                  `http://192.168.15.119:5000/user`,
+                                  `http://localhost:5000/user`,
                                   {
                                     method: "PUT",
                                     body: JSON.stringify({
@@ -506,7 +506,7 @@ const Users = () => {
                             <IconButton
                               onClick={async () => {
                                 const response = await fetch(
-                                  `http://192.168.15.119:5000/user?id=${row.id}`,
+                                  `http://localhost:5000/user?id=${row.id}`,
                                   {
                                     method: "DELETE",
                                   }

@@ -31,7 +31,7 @@ function Copyright(props) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="http://192.168.15.119:3000">
+      <Link color="inherit" href="http://localhost:3000">
         ThataSystem
       </Link>{" "}
       {new Date().getFullYear()}

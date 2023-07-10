@@ -97,7 +97,7 @@ const Consultas = () => {
   };
 
   const fetchConsultas = () => {
-    fetch("http://192.168.15.119:5000/consultas")
+    fetch("http://localhost:5000/consultas")
       .then((response) => {
         if (response.status === 404) {
           setConsultas([]);
@@ -129,7 +129,7 @@ const Consultas = () => {
   };
 
   const fetchConsultasHoje = () => {
-    fetch("http://192.168.15.119:5000/consultas/hoje")
+    fetch("http://localhost:5000/consultas/hoje")
       .then((response) => {
         if (response.status === 404) {
           return response.json().then((data) => {
@@ -165,7 +165,7 @@ const Consultas = () => {
       const [year, month, day] = dataConsulta.split("-");
       const formattedDate = `${day}/${month}/${year}`;
       const response = await fetch(
-        `http://192.168.15.119:5000/consultas/horario?data_consulta=${encodeURIComponent(
+        `http://localhost:5000/consultas/horario?data_consulta=${encodeURIComponent(
           formattedDate
         )}&horario_consulta=${encodeURIComponent(horarioConsulta)}`,
         {
@@ -235,7 +235,7 @@ const Consultas = () => {
   };
 
   const handleSave = async () => {
-    const response = await fetch(`http://192.168.15.119:5000/consulta`, {
+    const response = await fetch(`http://localhost:5000/consulta`, {
       method: "POST",
       body: JSON.stringify(newConsulta),
       headers: {
@@ -280,7 +280,7 @@ const Consultas = () => {
     }
     try {
       const response = await fetch(
-        `http://192.168.15.119:5000/consultas?${searchParam}=${encodeURIComponent(
+        `http://localhost:5000/consultas?${searchParam}=${encodeURIComponent(
           searchValue
         )}`,
         {
@@ -677,7 +677,7 @@ const Consultas = () => {
                                   };
                                 }
                                 const response = await fetch(
-                                  `http://192.168.15.119:5000/consulta`,
+                                  `http://localhost:5000/consulta`,
                                   {
                                     method: "PUT",
                                     body: JSON.stringify({
@@ -752,7 +752,7 @@ const Consultas = () => {
                             <IconButton
                               onClick={async () => {
                                 const response = await fetch(
-                                  `http://192.168.15.119:5000/consulta?consulta_id=${row.id}`,
+                                  `http://localhost:5000/consulta?consulta_id=${row.id}`,
                                   {
                                     method: "DELETE",
                                   }

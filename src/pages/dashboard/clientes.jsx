@@ -51,7 +51,7 @@ const Clientes = () => {
   const [searchValue, setSearchValue] = useState("");
 
   const fetchClientes = () => {
-    fetch("http://192.168.15.119:5000/clientes")
+    fetch("http://localhost:5000/clientes")
       .then((response) => {
         if (response.status === 404) {
           setClientes([]);
@@ -113,7 +113,7 @@ const Clientes = () => {
   };
 
   const handleSave = async () => {
-    const response = await fetch(`http://192.168.15.119:5000/cliente`, {
+    const response = await fetch(`http://localhost:5000/cliente`, {
       method: "POST",
       body: JSON.stringify(newCliente),
       headers: {
@@ -143,7 +143,7 @@ const Clientes = () => {
 
   try {
     const response = await fetch(
-      `http://192.168.15.119:5000/clientes?${searchParam}=${encodeURIComponent(
+      `http://localhost:5000/clientes?${searchParam}=${encodeURIComponent(
         searchValue
       )}`,
       {
@@ -335,7 +335,7 @@ const Clientes = () => {
                             onClick={async () => {
                               const rowToUpdate = edits[row.id] || row;
                               const response = await fetch(
-                                `http://192.168.15.119:5000/cliente`,
+                                `http://localhost:5000/cliente`,
                                 {
                                   method: "PUT",
                                   body: JSON.stringify({
@@ -389,7 +389,7 @@ const Clientes = () => {
                           <IconButton
                             onClick={async () => {
                               const response = await fetch(
-                                `http://192.168.15.119:5000/cliente?cliente_id=${row.id}`,
+                                `http://localhost:5000/cliente?cliente_id=${row.id}`,
                                 {
                                   method: "DELETE",
                                 }

@@ -19,7 +19,7 @@ export default function CreateUser() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://192.168.15.119:5000/user/create`, {
+      const response = await fetch(`http://localhost:5000/user/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

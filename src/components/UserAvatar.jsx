@@ -14,7 +14,7 @@ export default function UserAvatar() {
   useEffect(() => {
     const fetchUser = async () => {
       const userId = Cookies.get("ui");
-      const response = await fetch(`http://192.168.15.119:5000/user?id=${userId}`);
+      const response = await fetch(`http://localhost:5000/user?id=${userId}`);
       const data = await response.json();
       setUser(data);
     };
