@@ -31,9 +31,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
+import PreviewIcon from '@mui/icons-material/Preview';
 import SearchIcon from "@mui/icons-material/Search";
-import TodayIcon from "@mui/icons-material/Today";
 import Grid from "@mui/material/Grid";
 import Swal from "sweetalert2";
 import { CleaningServices } from "@mui/icons-material";
@@ -420,7 +419,7 @@ const Users = () => {
                                 });
                               }}
                             >
-                              Visualizar
+                             <PreviewIcon color="action" />
                             </Button>
                           </React.Fragment>
                         )}

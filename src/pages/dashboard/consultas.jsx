@@ -27,6 +27,7 @@ import {
   IconButton as MuiIconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
@@ -34,6 +35,7 @@ import AddIcon from "@mui/icons-material/Add";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import SearchIcon from "@mui/icons-material/Search";
 import TodayIcon from "@mui/icons-material/Today";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import Grid from "@mui/material/Grid";
 import Swal from "sweetalert2";
 import { CleaningServices } from "@mui/icons-material";
@@ -56,6 +58,37 @@ const Consultas = () => {
   const [searchValue, setSearchValue] = useState("");
   const [dataConsulta, setDataConsulta] = useState("");
   const [horarioConsulta, setHorarioConsulta] = useState("");
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailEdit, setDetailEdit] = useState({ id: null, value: "" });
+  const [detailViewDialogOpen, setDetailViewDialogOpen] = useState(false);
+  const [detailView, setDetailView] = useState("");
+
+  const openDetailViewDialog = (value) => {
+    setDetailView(value);
+    setDetailViewDialogOpen(true);
+  };
+
+  const closeDetailViewDialog = () => {
+    setDetailViewDialogOpen(false);
+  };
+
+  const openDetailEditDialog = (id, value) => {
+    setDetailEdit({ id, value });
+    setDetailDialogOpen(true);
+  };
+
+  const closeDetailEditDialog = () => {
+    setDetailDialogOpen(false);
+  };
+
+  const handleDetailChange = (e) => {
+    setDetailEdit((prev) => ({ ...prev, value: e.target.value }));
+  };
+
+  const saveDetailEdit = () => {
+    handleEdit(detailEdit.id, "detalhes_consulta", detailEdit.value);
+    closeDetailEditDialog();
+  };
 
   const changeDateFormatWithBar = (value) => {
     console.log(value);
@@ -129,9 +162,11 @@ const Consultas = () => {
       return;
     }
     try {
+      const [year, month, day] = dataConsulta.split("-");
+      const formattedDate = `${day}/${month}/${year}`;
       const response = await fetch(
         `http://192.168.15.119:5000/consultas/horario?data_consulta=${encodeURIComponent(
-          dataConsulta
+          formattedDate
         )}&horario_consulta=${encodeURIComponent(horarioConsulta)}`,
         {
           headers: {
@@ -298,7 +333,10 @@ const Consultas = () => {
           </Typography>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              <FormControl variant="outlined" sx={{ mt: 1, mb: 1, minWidth: 120 }}>
+              <FormControl
+                variant="outlined"
+                sx={{ mt: 1, mb: 1, minWidth: 120 }}
+              >
                 <InputLabel color="secondary" id="search-param-label">
                   Filtros
                 </InputLabel>
@@ -315,7 +353,10 @@ const Consultas = () => {
                   <MenuItem value={"data_consulta"}>Data da Consulta</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl variant="outlined" sx={{ mt: 1, mb: 1, ml: 2, minWidth: 120 }}>
+              <FormControl
+                variant="outlined"
+                sx={{ mt: 1, mb: 1, ml: 2, minWidth: 120 }}
+              >
                 <OutlinedInput
                   color="secondary"
                   id="search-value"
@@ -378,8 +419,8 @@ const Consultas = () => {
                 onClick={fetchConsultasPorHorario}
                 sx={{ mt: 2, mb: 2 }}
               >
-                Buscar por 
-                <AccessTimeFilledIcon sx={{ ml:2 }} />
+                Buscar por
+                <AccessTimeFilledIcon sx={{ ml: 2 }} />
               </Button>
             </Grid>
             <Grid item>
@@ -573,21 +614,49 @@ const Consultas = () => {
                       </TableCell>
                       <TableCell>
                         {editingRow === row.id ? (
-                          <TextField
-                            value={
-                              edits[row.id]?.detalhes_consulta ||
-                              row.detalhes_consulta
-                            }
-                            onChange={(e) =>
-                              handleEdit(
-                                row.id,
-                                "detalhes_consulta",
-                                e.target.value
-                              )
-                            }
-                          />
+                          <React.Fragment>
+                            <IconButton onClick={() => openDetailEditDialog(row.id, row.detalhes_consulta)}>
+                              <EditNoteIcon />
+                            </IconButton>
+                            <Dialog open={detailDialogOpen} onClose={closeDetailEditDialog}>
+                              <DialogTitle>Editar Detalhes</DialogTitle>
+                              <DialogContent>
+                                <TextField
+                                  autoFocus
+                                  margin="dense"
+                                  type="text"
+                                  fullWidth
+                                  value={detailEdit.value}
+                                  onChange={handleDetailChange}
+                                />
+                              </DialogContent>
+                              <DialogActions>
+                                <Button onClick={closeDetailEditDialog} color="primary">
+                                  Cancelar
+                                </Button>
+                                <Button onClick={saveDetailEdit} color="primary">
+                                  Salvar
+                                </Button>
+                              </DialogActions>
+                            </Dialog>
+                          </React.Fragment>
                         ) : (
-                          row.detalhes_consulta
+                          <React.Fragment>
+                            <Button onClick={() => openDetailViewDialog(row.detalhes_consulta)}>
+                              <VisibilityIcon color="action"/>
+                            </Button>
+                            <Dialog open={detailViewDialogOpen} onClose={closeDetailViewDialog}>
+                              <DialogTitle>Detalhes</DialogTitle>
+                              <DialogContent>
+                                <Typography>{detailView}</Typography>
+                              </DialogContent>
+                              <DialogActions>
+                                <Button onClick={closeDetailViewDialog} color="primary">
+                                  Fechar
+                                </Button>
+                              </DialogActions>
+                            </Dialog>
+                          </React.Fragment>
                         )}
                       </TableCell>
                       <TableCell>
