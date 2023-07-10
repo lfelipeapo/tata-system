@@ -51,6 +51,17 @@ const Users = () => {
     name: "",
     image: "",
   });
+  const [searchValue, setSearchValue] = useState("");
+  const [editedImages, setEditedImages] = useState({});
+
+  const handleSearch = () => {
+    const filteredUsers = users.filter((user) =>
+      Object.values(user).some((value) =>
+        value.toString().toLowerCase().includes(searchValue.toLowerCase())
+      )
+    );
+    setUsers(filteredUsers);
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -100,6 +111,17 @@ const Users = () => {
       ...state,
       [id]: { ...state[id], [field]: value },
     }));
+
+    if (field === "image") {
+      setEditedImages((state) => ({
+        ...state,
+        [id]: value,
+      }));
+    }
+
+    setUsers((users) =>
+      users.map((user) => (user.id === id ? { ...user, [field]: value } : user))
+    );
   };
 
   const handleAdd = () => {
@@ -180,9 +202,9 @@ const Users = () => {
           </Typography>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              {/* <FormControl
+              <FormControl
                 variant="outlined"
-                sx={{ mt: 1, mb: 1, ml: 2, minWidth: 120 }}
+                sx={{ mt: 1, mb: 2, minWidth: 120 }}
               >
                 <OutlinedInput
                   color="secondary"
@@ -202,7 +224,7 @@ const Users = () => {
                   }
                   labelwidth={0}
                 />
-              </FormControl> */}
+              </FormControl>
               <IconButton
                 sx={{ m: 1.75 }}
                 color="secondary"
@@ -348,14 +370,59 @@ const Users = () => {
                       </TableCell>
                       <TableCell>
                         {editingRow === row.id ? (
-                          <TextField
-                            value={edits[row.id]?.image || row.image}
-                            onChange={(e) =>
-                              handleEdit(row.id, "image", e.target.value)
-                            }
-                          />
+                          <React.Fragment>
+                            <input
+                              accept="image/*"
+                              style={{ display: "none" }}
+                              id={`raised-button-file-${row.id}`}
+                              type="file"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  const imageUrl = URL.createObjectURL(file);
+                                  handleEdit(row.id, "image", imageUrl);
+                                }
+                              }}
+                            />
+                            <label htmlFor={`raised-button-file-${row.id}`}>
+                              <Button
+                                variant="contained"
+                                color="secondary"
+                                component="span"
+                              >
+                                Trocar Imagem
+                              </Button>
+                            </label>
+                            {editedImages[row.id] ? (
+                              <img
+                                src={editedImages[row.id]}
+                                alt="preview"
+                                style={{ width: "100px" }}
+                              />
+                            ) : (
+                              row.image && (
+                                <img
+                                  src={row.image}
+                                  alt="preview"
+                                  style={{ width: "100px" }}
+                                />
+                              )
+                            )}
+                          </React.Fragment>
                         ) : (
-                          row.image
+                          <React.Fragment>
+                            <Button
+                              onClick={() => {
+                                Swal.fire({
+                                  imageUrl: row.image,
+                                  imageAlt: "Imagem do usuário",
+                                  showConfirmButton: false,
+                                });
+                              }}
+                            >
+                              Visualizar
+                            </Button>
+                          </React.Fragment>
                         )}
                       </TableCell>
                       <TableCell>
