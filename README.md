@@ -11,6 +11,10 @@ O Tata System é um projeto de front-end desenvolvido como um MVP para a pós-gr
 
 ## Como começar
 
+### Nota: Antes de tudo certifique-se de ter o projeto tata-system-api em execução em localhost:5000.
+Para clonar o projeto citado acesse:
+https://github.com/lfelipeapo/tata-system-api
+
 1. Clone o repositório para o seu ambiente local usando `git clone https://github.com/lfelipeapo/tata-system.git`.
 
 2. Navegue até o diretório do projeto usando `cd tata-system`.
