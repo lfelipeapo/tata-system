@@ -31,7 +31,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
+import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import SearchIcon from "@mui/icons-material/Search";
+import TodayIcon from "@mui/icons-material/Today";
 import Grid from "@mui/material/Grid";
 import Swal from "sweetalert2";
 import { CleaningServices } from "@mui/icons-material";
@@ -52,6 +54,8 @@ const Consultas = () => {
   });
   const [searchParam, setSearchParam] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [dataConsulta, setDataConsulta] = useState("");
+  const [horarioConsulta, setHorarioConsulta] = useState("");
 
   const changeDateFormatWithBar = (value) => {
     console.log(value);
@@ -89,6 +93,71 @@ const Consultas = () => {
         setConsultas([]);
         Swal.fire("Erro", error.message, "error");
       });
+  };
+
+  const fetchConsultasHoje = () => {
+    fetch("http://192.168.15.119:5000/consultas/hoje")
+      .then((response) => {
+        if (response.status === 404) {
+          return response.json().then((data) => {
+            Swal.fire("Erro", data.mensagem, "error");
+          });
+        } else if (response.status !== 200) {
+          return response.json().then((data) => {
+            Swal.fire("Erro", data.mensagem || data[0]?.msg, "error");
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data && data.consultas) {
+          setConsultas(data.consultas);
+        }
+      })
+      .catch((error) => {
+        Swal.fire("Erro", error.message, "error");
+      });
+  };
+
+  const fetchConsultasPorHorario = async () => {
+    if (!dataConsulta || !horarioConsulta) {
+      Swal.fire(
+        "Erro",
+        "Por favor, preencha a data e o horário da consulta.",
+        "error"
+      );
+      return;
+    }
+    try {
+      const response = await fetch(
+        `http://192.168.15.119:5000/consultas/horario?data_consulta=${encodeURIComponent(
+          dataConsulta
+        )}&horario_consulta=${encodeURIComponent(horarioConsulta)}`,
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept-Language": "pt-BR",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.status === 200) {
+        if (data) {
+          setConsultas(data.consultas);
+        } else if (Array.isArray(data) && data[0]?.msg) {
+          const errorMsgs = data
+            .map((error) => `${error.loc.join(".")} : ${error.msg}`)
+            .join("\n");
+          Swal.fire("Erro", errorMsgs, "error");
+        }
+      } else if (response.status !== 200) {
+        Swal.fire("Erro", data.mensagem || data[0]?.msg, "error");
+      } else {
+        Swal.fire("Erro", data.mensagem || "Unknown error", "error");
+      }
+    } catch (error) {
+      Swal.fire("Erro", error.message, "error");
+    }
   };
 
   useEffect(() => {
@@ -222,14 +291,14 @@ const Consultas = () => {
 
   return (
     <Dashboard>
-      <div style={{ maxHeight: 600, width: "100%" }}>
+      <div style={{ minHeight: 600, width: "100%" }}>
         <Container sx={{ mt: 4, mb: 4 }}>
           <Typography variant="h5" sx={{ mb: 2 }}>
             Consultas
           </Typography>
           <Grid container justifyContent="space-between" alignItems="center">
             <Grid item>
-              <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
+              <FormControl variant="outlined" sx={{ mt: 1, mb: 1, minWidth: 120 }}>
                 <InputLabel color="secondary" id="search-param-label">
                   Filtros
                 </InputLabel>
@@ -246,7 +315,7 @@ const Consultas = () => {
                   <MenuItem value={"data_consulta"}>Data da Consulta</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl variant="outlined" sx={{ m: 1, minWidth: 120 }}>
+              <FormControl variant="outlined" sx={{ mt: 1, mb: 1, ml: 2, minWidth: 120 }}>
                 <OutlinedInput
                   color="secondary"
                   id="search-value"
@@ -275,6 +344,44 @@ const Consultas = () => {
                 <CleaningServices />
               </IconButton>
             </Grid>
+
+            <Grid item>
+              <TextField
+                margin="dense"
+                name="data_consulta"
+                label="Data da Consulta"
+                type="date"
+                value={dataConsulta}
+                onChange={(e) => setDataConsulta(e.target.value)}
+                color="secondary"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{ ml: 1, mr: 2 }}
+              />
+              <TextField
+                margin="dense"
+                name="horario_consulta"
+                label="Horário da Consulta"
+                type="time"
+                value={horarioConsulta}
+                onChange={(e) => setHorarioConsulta(e.target.value)}
+                color="secondary"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{ mr: 2 }}
+              />
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={fetchConsultasPorHorario}
+                sx={{ mt: 2, mb: 2 }}
+              >
+                Buscar por 
+                <AccessTimeFilledIcon sx={{ ml:2 }} />
+              </Button>
+            </Grid>
             <Grid item>
               <Button
                 variant="contained"
@@ -284,6 +391,17 @@ const Consultas = () => {
                 sx={{ mt: 2, mb: 2 }}
               >
                 Adicionar Consulta
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="secondary"
+                startIcon={<TodayIcon />}
+                onClick={fetchConsultasHoje}
+                sx={{ mt: 2, mb: 2 }}
+              >
+                Consultas de Hoje
               </Button>
             </Grid>
           </Grid>

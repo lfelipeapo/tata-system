@@ -177,7 +177,7 @@ const Clientes = () => {
 
   return (
     <Dashboard>
-      <div style={{ maxHeight: 600, width: "100%" }}>
+      <div style={{ minHeight: 600, width: "100%" }}>
         <Container sx={{ mt: 4, mb: 4 }}>
           <Typography variant="h5" sx={{ mb: 2 }}>
             Clientes
