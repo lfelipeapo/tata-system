@@ -2,7 +2,7 @@
 
 ## Sobre
 
-O Tata System é um projeto de front-end desenvolvido como um MVP para a pós-graduação na PUC-Rio. Este repositório contém todos os arquivos e recursos necessários para executar o projeto.
+O Thata System é um projeto de front-end desenvolvido como um MVP para a pós-graduação na PUC-Rio. Este repositório contém todos os arquivos e recursos necessários para executar o projeto.
 
 ## Pré-requisitos
 
