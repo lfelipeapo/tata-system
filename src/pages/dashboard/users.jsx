@@ -55,8 +55,10 @@ const Users = () => {
 
   const handleSearch = () => {
     const filteredUsers = users.filter((user) =>
-      Object.values(user).some((value) =>
-        value.toString().toLowerCase().includes(searchValue.toLowerCase())
+      Object.values(user).some(
+        (value) =>
+          value &&
+          value.toString().toLowerCase().includes(searchValue.toLowerCase())
       )
     );
     setUsers(filteredUsers);
