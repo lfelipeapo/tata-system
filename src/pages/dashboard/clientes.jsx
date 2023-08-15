@@ -36,6 +36,7 @@ import Grid from "@mui/material/Grid";
 import Swal from "sweetalert2";
 import { CleaningServices } from "@mui/icons-material";
 import styles from "./styles.module.css"
+import DocumentUpload from "../../components/DocumentUpload";
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -408,6 +409,9 @@ const Clientes = () => {
                             }}
                           >
                             <DeleteIcon />
+                          </IconButton>
+                          <IconButton>
+                            <DocumentUpload />
                           </IconButton>
                         </React.Fragment>
                       )}
