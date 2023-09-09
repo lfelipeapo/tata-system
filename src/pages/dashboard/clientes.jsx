@@ -130,6 +130,7 @@ const Clientes = () => {
   };
 
   const handleSave = async () => {
+    setLoading(true);
     const response = await fetch(`http://localhost:5000/cliente`, {
       method: "POST",
       body: JSON.stringify(newCliente),
@@ -141,24 +142,26 @@ const Clientes = () => {
     const data = await response.json();
     if (data.mensagem || data[0]?.msg) {
       Swal.fire("Error", data.mensagem || data[0]?.msg, "error");
+      setLoading(false);
     } else {
       setOpen(false);
+      setLoading(false);
       Swal.fire("Success", "Cliente adicionado com sucesso!", "success");
       fetchClientes();
     }
   };
 
   const handleSearch = async () => {
-    setLoading(true);
     if (!searchParam || !searchValue) {
       Swal.fire(
         "Error",
         "Por favor, selecione um parâmetro de pesquisa e digite um valor.",
         "error"
-      );
-      return;
-    }
-
+        );
+        return;
+      }
+      
+    setLoading(true);
     try {
       const response = await fetch(
         `http://localhost:5000/clientes?${searchParam}=${encodeURIComponent(
@@ -388,8 +391,8 @@ const Clientes = () => {
                               <React.Fragment>
                                 <IconButton
                                   onClick={async () => {
-                                    
                                     const rowToUpdate = edits[row.id] || row;
+                                    setLoading(true);
                                     const response = await fetch(
                                       `http://localhost:5000/cliente`,
                                       {
@@ -412,6 +415,7 @@ const Clientes = () => {
                                         data.mensagem || data[0]?.msg,
                                         "error"
                                       );
+                                      setLoading(false);
                                     } else {
                                       setEditingRow(null);
                                       Swal.fire(
@@ -419,6 +423,7 @@ const Clientes = () => {
                                         "Registro atualizado com sucesso!",
                                         "success"
                                       );
+                                      setLoading(false);
                                       fetchClientes();
                                     }
                                   }}
@@ -444,6 +449,7 @@ const Clientes = () => {
                                 </IconButton>
                                 <IconButton
                                   onClick={async () => {
+                                    setLoading(true);
                                     const response = await fetch(
                                       `http://localhost:5000/cliente?cliente_id=${row.id}`,
                                       {
@@ -457,12 +463,14 @@ const Clientes = () => {
                                         data.mensagem,
                                         "error"
                                       );
+                                      setLoading(false);
                                     } else {
                                       Swal.fire(
                                         "Success",
                                         "Registro deletado com sucesso!",
                                         "success"
                                       );
+                                      setLoading(false);
                                       fetchClientes();
                                     }
                                   }}

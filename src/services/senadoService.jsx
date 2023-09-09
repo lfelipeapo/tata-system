@@ -1,4 +1,4 @@
-'use client'
+'use strict'
 import axios from 'axios';
 
 const BASE_URL = 'https://legis.senado.leg.br/dadosabertos';

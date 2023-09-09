@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Dashboard from "../../components/layout/dashboard";
 import {
+  Box,
+  CircularProgress,
   Container,
   Grid,
   Paper,
@@ -9,6 +11,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -20,7 +23,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { getNormaByCodigo } from "../../services/senadoService";
-import SenadoForm from "../../components/SenadoForm";
+import SenadoForm from "../../components/forms/SenadoForm";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   backgroundColor: theme.palette.secondary.main,
@@ -34,12 +37,26 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export const Leis = () => {
+  const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [termos, setTermos] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [openSubModal, setOpenSubModal] = useState(false);
   const [normaDetails, setNormaDetails] = useState(null);
   const [subModalDetails, setSubModalDetails] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Handle page change
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const handleOpenModal = async (codigo) => {
     try {
@@ -134,6 +151,7 @@ export const Leis = () => {
               setResults={setResults}
               termos={termos}
               setTermos={setTermos}
+              setLoading={setLoading}
             />
             {results.length > 0 && (
               <TextField
@@ -160,26 +178,43 @@ export const Leis = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {results.length > 0 ? (
-                  results.map((doc) => (
-                    <TableRow key={doc["@id"]}>
-                      <TableCell>{doc.normaNome}</TableCell>
-                      <TableCell>{doc.dataassinatura}</TableCell>
-                      <TableCell>{doc.tipo}</TableCell>
-                      <TableCell>{doc.ementa}</TableCell>
-                      <TableCell>{doc.descricao}</TableCell>
-                      <TableCell>{doc.numero}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="secondary"
-                          onClick={() => handleOpenModal(doc["@id"])}
-                        >
-                          Detalhes
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          height: "50vh",
+                        }}
+                      >
+                        <CircularProgress />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : results.length > 0 ? (
+                  results
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((doc) => (
+                      <TableRow key={doc["@id"]}>
+                        <TableCell>{doc.normaNome}</TableCell>
+                        <TableCell>{doc.dataassinatura}</TableCell>
+                        <TableCell>{doc.tipo}</TableCell>
+                        <TableCell>{doc.ementa}</TableCell>
+                        <TableCell>{doc.descricao}</TableCell>
+                        <TableCell>{doc.numero}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={() => handleOpenModal(doc["@id"])}
+                          >
+                            Detalhes
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
@@ -188,6 +223,15 @@ export const Leis = () => {
                   </TableRow>
                 )}
               </TableBody>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={results.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
             </Table>
           </TableContainer>
         </Container>

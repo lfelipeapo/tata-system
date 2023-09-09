@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Dashboard from "../../components/layout/dashboard";
 import {
+  Box,
+  CircularProgress,
   Container,
   Typography,
   IconButton,
@@ -25,6 +27,7 @@ import {
   OutlinedInput,
   InputAdornment,
   IconButton as MuiIconButton,
+  TablePagination,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -43,7 +46,7 @@ import styles from "./styles.module.css";
 
 const Consultas = () => {
   const [consultas, setConsultas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [edits, setEdits] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const [open, setOpen] = useState(false);
@@ -62,6 +65,17 @@ const Consultas = () => {
   const [detailEdit, setDetailEdit] = useState({ id: null, value: "" });
   const [detailViewDialogOpen, setDetailViewDialogOpen] = useState(false);
   const [detailView, setDetailView] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const openDetailViewDialog = (value) => {
     setDetailView(value);
@@ -97,6 +111,7 @@ const Consultas = () => {
   };
 
   const fetchConsultas = () => {
+    setLoading(true);
     fetch("http://localhost:5000/consultas")
       .then((response) => {
         if (response.status === 404) {
@@ -125,10 +140,13 @@ const Consultas = () => {
       .catch((error) => {
         setConsultas([]);
         Swal.fire("Erro", error.message, "error");
+      }).finally(() => {
+        setLoading(false);
       });
   };
 
   const fetchConsultasHoje = () => {
+    setLoading(true);
     fetch("http://localhost:5000/consultas/hoje")
       .then((response) => {
         if (response.status === 404) {
@@ -149,10 +167,13 @@ const Consultas = () => {
       })
       .catch((error) => {
         Swal.fire("Erro", error.message, "error");
+      }).finally(()=>{
+        setLoading(false);
       });
   };
 
   const fetchConsultasPorHorario = async () => {
+    setLoading(true);
     if (!dataConsulta || !horarioConsulta) {
       Swal.fire(
         "Erro",
@@ -192,6 +213,8 @@ const Consultas = () => {
       }
     } catch (error) {
       Swal.fire("Erro", error.message, "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -235,6 +258,7 @@ const Consultas = () => {
   };
 
   const handleSave = async () => {
+    setLoading(true);
     const response = await fetch(`http://localhost:5000/consulta`, {
       method: "POST",
       body: JSON.stringify(newConsulta),
@@ -267,9 +291,11 @@ const Consultas = () => {
     } else {
       Swal.fire("Erro", data.mensagem || "Unknown error", "error");
     }
+    setLoading(false);
   };
 
   const handleSearch = async () => {
+    setLoading(true);
     if (!searchParam || !searchValue) {
       Swal.fire(
         "Erro",
@@ -307,6 +333,8 @@ const Consultas = () => {
       }
     } catch (error) {
       Swal.fire("Erro", error.message, "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -523,289 +551,302 @@ const Consultas = () => {
               </Button>
             </DialogActions>
           </Dialog>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>CPF do Cliente</TableCell>
-                  <TableCell>Nome do Cliente</TableCell>
-                  <TableCell>Data</TableCell>
-                  <TableCell>Horário</TableCell>
-                  <TableCell>Detalhes</TableCell>
-                  <TableCell>Ação</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {consultas.length === 0 ? (
+          {loading ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      Não existem consultas cadastradas
-                    </TableCell>
+                    <TableCell>ID</TableCell>
+                    <TableCell>CPF do Cliente</TableCell>
+                    <TableCell>Nome do Cliente</TableCell>
+                    <TableCell>Data</TableCell>
+                    <TableCell>Horário</TableCell>
+                    <TableCell>Detalhes</TableCell>
+                    <TableCell>Ação</TableCell>
                   </TableRow>
-                ) : (
-                  consultas.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.id}</TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <TextField
-                            value={
-                              edits[row.id]?.cpf_cliente || row.cpf_cliente
-                            }
-                            onChange={(e) =>
-                              handleEdit(row.id, "cpf_cliente", e.target.value)
-                            }
-                          />
-                        ) : (
-                          row.cpf_cliente
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <TextField
-                            value={
-                              edits[row.id]?.nome_cliente || row.nome_cliente
-                            }
-                            onChange={(e) =>
-                              handleEdit(row.id, "nome_cliente", e.target.value)
-                            }
-                          />
-                        ) : (
-                          row.nome_cliente
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <TextField
-                            value={
-                              edits[row.id]?.data_consulta || row.data_consulta
-                            }
-                            onChange={(e) =>
-                              handleEdit(
-                                row.id,
-                                "data_consulta",
-                                e.target.value
-                              )
-                            }
-                          />
-                        ) : (
-                          row.data_consulta
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <TextField
-                            value={
-                              edits[row.id]?.horario_consulta ||
-                              row.horario_consulta
-                            }
-                            onChange={(e) =>
-                              handleEdit(
-                                row.id,
-                                "horario_consulta",
-                                e.target.value
-                              )
-                            }
-                          />
-                        ) : (
-                          row.horario_consulta
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <React.Fragment>
-                            <IconButton onClick={() => openDetailEditDialog(row.id, row.detalhes_consulta)}>
-                              <EditNoteIcon />
-                            </IconButton>
-                            <Dialog open={detailDialogOpen} onClose={closeDetailEditDialog}>
-                              <DialogTitle>Editar Detalhes</DialogTitle>
-                              <DialogContent>
-                                <TextField
-                                  autoFocus
-                                  margin="dense"
-                                  type="text"
-                                  fullWidth
-                                  value={detailEdit.value}
-                                  onChange={handleDetailChange}
-                                />
-                              </DialogContent>
-                              <DialogActions>
-                                <Button onClick={closeDetailEditDialog} color="primary">
-                                  Cancelar
-                                </Button>
-                                <Button onClick={saveDetailEdit} color="primary">
-                                  Salvar
-                                </Button>
-                              </DialogActions>
-                            </Dialog>
-                          </React.Fragment>
-                        ) : (
-                          <React.Fragment>
-                            <Button onClick={() => openDetailViewDialog(row.detalhes_consulta)}>
-                              <VisibilityIcon color="action"/>
-                            </Button>
-                            <Dialog open={detailViewDialogOpen} onClose={closeDetailViewDialog}>
-                              <DialogTitle>Detalhes</DialogTitle>
-                              <DialogContent>
-                                <Typography>{detailView}</Typography>
-                              </DialogContent>
-                              <DialogActions>
-                                <Button onClick={closeDetailViewDialog} color="primary">
-                                  Fechar
-                                </Button>
-                              </DialogActions>
-                            </Dialog>
-                          </React.Fragment>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingRow === row.id ? (
-                          <React.Fragment>
-                            <IconButton
-                              onClick={async () => {
-                                let rowToUpdate = edits[row.id] || row;
-                                if (
-                                  rowToUpdate.data_consulta &&
-                                  rowToUpdate.data_consulta.includes("/")
-                                ) {
-                                  rowToUpdate = {
-                                    ...rowToUpdate,
-                                    data_consulta: changeDateFormatWithBar(
-                                      rowToUpdate.data_consulta
-                                    ),
-                                  };
-                                }
-                                const response = await fetch(
-                                  `http://localhost:5000/consulta`,
-                                  {
-                                    method: "PUT",
-                                    body: JSON.stringify({
-                                      ...rowToUpdate,
-                                      consulta_id: row.id,
-                                    }),
-                                    headers: {
-                                      "Content-Type":
-                                        "application/json; charset=utf-8",
-                                      "Accept-Language": "pt-BR",
-                                    },
-                                  }
-                                );
-                                const data = await response.json();
-                                if (response.status === 200) {
-                                  if (data) {
-                                    Swal.fire(
-                                      "Success",
-                                      "Consulta atualizada com sucesso!",
-                                      "success"
-                                    );
-                                    setEditingRow(null);
-                                    fetchConsultas();
-                                  } else if (
-                                    Array.isArray(data) &&
-                                    data[0]?.msg
-                                  ) {
-                                    const errorMsgs = data
-                                      .map(
-                                        (error) =>
-                                          `${error.loc.join(".")} : ${
-                                            error.msg
-                                          }`
-                                      )
-                                      .join("\n");
-                                    Swal.fire("Erro", errorMsgs, "error");
-                                  }
-                                } else if (response.status !== 200) {
-                                  Swal.fire(
-                                    "Erro",
-                                    data.mensagem || data[0]?.msg,
-                                    "error"
-                                  );
-                                } else {
-                                  Swal.fire(
-                                    "Erro",
-                                    data.mensagem || "Unknown error",
-                                    "error"
-                                  );
-                                }
-                              }}
-                            >
-                              <CheckIcon />
-                            </IconButton>
-                            <IconButton
-                              onClick={() => {
-                                setEditingRow(null);
-                              }}
-                            >
-                              <CloseIcon />
-                            </IconButton>
-                          </React.Fragment>
-                        ) : (
-                          <React.Fragment>
-                            <IconButton
-                              onClick={() => {
-                                setEditingRow(row.id);
-                              }}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              onClick={async () => {
-                                const response = await fetch(
-                                  `http://localhost:5000/consulta?consulta_id=${row.id}`,
-                                  {
-                                    method: "DELETE",
-                                  }
-                                );
-                                const data = await response.json();
-                                if (response.status === 200) {
-                                  if (data.mensagem) {
-                                    Swal.fire(
-                                      "Success",
-                                      data.mensagem,
-                                      "success"
-                                    );
-                                    fetchConsultas();
-                                  } else if (
-                                    Array.isArray(data) &&
-                                    data[0]?.msg
-                                  ) {
-                                    const errorMsgs = data
-                                      .map(
-                                        (error) =>
-                                          `${error.loc.join(".")} : ${
-                                            error.msg
-                                          }`
-                                      )
-                                      .join("\n");
-                                    Swal.fire("Erro", errorMsgs, "error");
-                                  }
-                                } else if (response.status !== 200) {
-                                  Swal.fire(
-                                    "Erro",
-                                    data.mensagem || data[0]?.msg,
-                                    "error"
-                                  );
-                                } else {
-                                  Swal.fire(
-                                    "Erro",
-                                    data.mensagem || "Unknown error",
-                                    "error"
-                                  );
-                                }
-                              }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </React.Fragment>
-                        )}
+                </TableHead>
+                <TableBody>
+                  {consultas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">
+                        Não existem consultas cadastradas
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  ) : (
+                    consultas.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>{row.id}</TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <TextField
+                              value={
+                                edits[row.id]?.cpf_cliente || row.cpf_cliente
+                              }
+                              onChange={(e) =>
+                                handleEdit(row.id, "cpf_cliente", e.target.value)
+                              }
+                            />
+                          ) : (
+                            row.cpf_cliente
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <TextField
+                              value={
+                                edits[row.id]?.nome_cliente || row.nome_cliente
+                              }
+                              onChange={(e) =>
+                                handleEdit(row.id, "nome_cliente", e.target.value)
+                              }
+                            />
+                          ) : (
+                            row.nome_cliente
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <TextField
+                              value={
+                                edits[row.id]?.data_consulta || row.data_consulta
+                              }
+                              onChange={(e) =>
+                                handleEdit(
+                                  row.id,
+                                  "data_consulta",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          ) : (
+                            row.data_consulta
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <TextField
+                              value={
+                                edits[row.id]?.horario_consulta ||
+                                row.horario_consulta
+                              }
+                              onChange={(e) =>
+                                handleEdit(
+                                  row.id,
+                                  "horario_consulta",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          ) : (
+                            row.horario_consulta
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <React.Fragment>
+                              <IconButton onClick={() => openDetailEditDialog(row.id, row.detalhes_consulta)}>
+                                <EditNoteIcon />
+                              </IconButton>
+                              <Dialog open={detailDialogOpen} onClose={closeDetailEditDialog}>
+                                <DialogTitle>Editar Detalhes</DialogTitle>
+                                <DialogContent>
+                                  <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    type="text"
+                                    fullWidth
+                                    value={detailEdit.value}
+                                    onChange={handleDetailChange}
+                                  />
+                                </DialogContent>
+                                <DialogActions>
+                                  <Button onClick={closeDetailEditDialog} color="primary">
+                                    Cancelar
+                                  </Button>
+                                  <Button onClick={saveDetailEdit} color="primary">
+                                    Salvar
+                                  </Button>
+                                </DialogActions>
+                              </Dialog>
+                            </React.Fragment>
+                          ) : (
+                            <React.Fragment>
+                              <Button onClick={() => openDetailViewDialog(row.detalhes_consulta)}>
+                                <VisibilityIcon color="action" />
+                              </Button>
+                              <Dialog open={detailViewDialogOpen} onClose={closeDetailViewDialog}>
+                                <DialogTitle>Detalhes</DialogTitle>
+                                <DialogContent>
+                                  <Typography>{detailView}</Typography>
+                                </DialogContent>
+                                <DialogActions>
+                                  <Button onClick={closeDetailViewDialog} color="primary">
+                                    Fechar
+                                  </Button>
+                                </DialogActions>
+                              </Dialog>
+                            </React.Fragment>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingRow === row.id ? (
+                            <React.Fragment>
+                              <IconButton
+                                onClick={async () => {
+                                  let rowToUpdate = edits[row.id] || row;
+                                  if (
+                                    rowToUpdate.data_consulta &&
+                                    rowToUpdate.data_consulta.includes("/")
+                                  ) {
+                                    rowToUpdate = {
+                                      ...rowToUpdate,
+                                      data_consulta: changeDateFormatWithBar(
+                                        rowToUpdate.data_consulta
+                                      ),
+                                    };
+                                  }
+                                  const response = await fetch(
+                                    `http://localhost:5000/consulta`,
+                                    {
+                                      method: "PUT",
+                                      body: JSON.stringify({
+                                        ...rowToUpdate,
+                                        consulta_id: row.id,
+                                      }),
+                                      headers: {
+                                        "Content-Type":
+                                          "application/json; charset=utf-8",
+                                        "Accept-Language": "pt-BR",
+                                      },
+                                    }
+                                  );
+                                  const data = await response.json();
+                                  if (response.status === 200) {
+                                    if (data) {
+                                      Swal.fire(
+                                        "Success",
+                                        "Consulta atualizada com sucesso!",
+                                        "success"
+                                      );
+                                      setEditingRow(null);
+                                      fetchConsultas();
+                                    } else if (
+                                      Array.isArray(data) &&
+                                      data[0]?.msg
+                                    ) {
+                                      const errorMsgs = data
+                                        .map(
+                                          (error) =>
+                                            `${error.loc.join(".")} : ${error.msg
+                                            }`
+                                        )
+                                        .join("\n");
+                                      Swal.fire("Erro", errorMsgs, "error");
+                                    }
+                                  } else if (response.status !== 200) {
+                                    Swal.fire(
+                                      "Erro",
+                                      data.mensagem || data[0]?.msg,
+                                      "error"
+                                    );
+                                  } else {
+                                    Swal.fire(
+                                      "Erro",
+                                      data.mensagem || "Unknown error",
+                                      "error"
+                                    );
+                                  }
+                                }}
+                              >
+                                <CheckIcon />
+                              </IconButton>
+                              <IconButton
+                                onClick={() => {
+                                  setEditingRow(null);
+                                }}
+                              >
+                                <CloseIcon />
+                              </IconButton>
+                            </React.Fragment>
+                          ) : (
+                            <React.Fragment>
+                              <IconButton
+                                onClick={() => {
+                                  setEditingRow(row.id);
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                onClick={async () => {
+                                  const response = await fetch(
+                                    `http://localhost:5000/consulta?consulta_id=${row.id}`,
+                                    {
+                                      method: "DELETE",
+                                    }
+                                  );
+                                  const data = await response.json();
+                                  if (response.status === 200) {
+                                    if (data.mensagem) {
+                                      Swal.fire(
+                                        "Success",
+                                        data.mensagem,
+                                        "success"
+                                      );
+                                      fetchConsultas();
+                                    } else if (
+                                      Array.isArray(data) &&
+                                      data[0]?.msg
+                                    ) {
+                                      const errorMsgs = data
+                                        .map(
+                                          (error) =>
+                                            `${error.loc.join(".")} : ${error.msg
+                                            }`
+                                        )
+                                        .join("\n");
+                                      Swal.fire("Erro", errorMsgs, "error");
+                                    }
+                                  } else if (response.status !== 200) {
+                                    Swal.fire(
+                                      "Erro",
+                                      data.mensagem || data[0]?.msg,
+                                      "error"
+                                    );
+                                  } else {
+                                    Swal.fire(
+                                      "Erro",
+                                      data.mensagem || "Unknown error",
+                                      "error"
+                                    );
+                                  }
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </React.Fragment>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={consultas.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </TableContainer>
+          )}
         </Container>
       </div>
     </Dashboard>

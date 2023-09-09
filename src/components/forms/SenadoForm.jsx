@@ -12,7 +12,7 @@ import {
   Grid,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import { getNormas, getTiposNorma } from "../services/senadoService";
+import { getNormas, getTiposNorma } from "../../services/senadoService";
 
 const theme = createTheme({
   palette: {
@@ -22,7 +22,7 @@ const theme = createTheme({
   },
 });
 
-function SenadoForm({ results, setResults, termos, setTermos }) {
+function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
   const [tipo, setTipo] = useState("");
   const [ano, setAno] = useState("");
   const [numero, setNumero] = useState("");
@@ -53,6 +53,7 @@ function SenadoForm({ results, setResults, termos, setTermos }) {
   }, []);
 
   const handleClear = async () => {
+    setLoading(true);
     setTermos("");
 
     try {
@@ -85,10 +86,13 @@ function SenadoForm({ results, setResults, termos, setTermos }) {
         title: "Erro!",
         text: "Ocorreu um erro ao realizar a pesquisa.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
 
     if (!ano && !numero) {
@@ -141,6 +145,8 @@ function SenadoForm({ results, setResults, termos, setTermos }) {
         title: "Erro!",
         text: "Ocorreu um erro ao realizar a pesquisa.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
