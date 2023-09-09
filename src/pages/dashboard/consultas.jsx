@@ -173,15 +173,15 @@ const Consultas = () => {
   };
 
   const fetchConsultasPorHorario = async () => {
-    setLoading(true);
     if (!dataConsulta || !horarioConsulta) {
       Swal.fire(
         "Erro",
         "Por favor, preencha a data e o horário da consulta.",
         "error"
-      );
-      return;
-    }
+        );
+        return;
+      }
+    setLoading(true);
     try {
       const [year, month, day] = dataConsulta.split("-");
       const formattedDate = `${day}/${month}/${year}`;
@@ -295,15 +295,15 @@ const Consultas = () => {
   };
 
   const handleSearch = async () => {
-    setLoading(true);
     if (!searchParam || !searchValue) {
       Swal.fire(
         "Erro",
         "Por favor, selecione um parâmetro de pesquisa e digite um valor.",
         "error"
-      );
-      return;
-    }
+        );
+        return;
+      }
+    setLoading(true);
     try {
       const response = await fetch(
         `http://localhost:5000/consultas?${searchParam}=${encodeURIComponent(
@@ -709,6 +709,7 @@ const Consultas = () => {
                                       ),
                                     };
                                   }
+                                  setLoading(true);
                                   const response = await fetch(
                                     `http://localhost:5000/consulta`,
                                     {
@@ -760,6 +761,7 @@ const Consultas = () => {
                                       "error"
                                     );
                                   }
+                                  setLoading(false);
                                 }}
                               >
                                 <CheckIcon />
@@ -783,6 +785,7 @@ const Consultas = () => {
                               </IconButton>
                               <IconButton
                                 onClick={async () => {
+                                    setLoading(true);
                                   const response = await fetch(
                                     `http://localhost:5000/consulta?consulta_id=${row.id}`,
                                     {
@@ -824,6 +827,7 @@ const Consultas = () => {
                                       "error"
                                     );
                                   }
+                                    setLoading(false);
                                 }}
                               >
                                 <DeleteIcon />
