@@ -28,34 +28,37 @@ function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
   const [numero, setNumero] = useState("");
   const [tiposNorma, setTiposNorma] = useState([]);
 
-  useEffect(() => {
-    const fetchTiposNorma = async () => {
-      try {
-        const response = await getTiposNorma();
-        const uniqueTiposNorma = Array.from(
-          new Set(
-            response.data.ListaTiposDocumento.TiposDocumento.TipoDocumento.map(
-              (tipo) => tipo.Codigo
-            )
+  const fetchTiposNorma = async () => {
+    setLoading(true);
+    try {
+      const response = await getTiposNorma();
+      const uniqueTiposNorma = Array.from(
+        new Set(
+          response.data.ListaTiposDocumento.TiposDocumento.TipoDocumento.map(
+            (tipo) => tipo.Codigo
           )
-        ).map((codigo) => {
-          return response.data.ListaTiposDocumento.TiposDocumento.TipoDocumento.find(
-            (tipo) => tipo.Codigo === codigo
-          );
-        });
-        setTiposNorma(uniqueTiposNorma);
-      } catch (error) {
-        console.error("Erro ao buscar tipos de norma:", error);
-      }
-    };
+        )
+      ).map((codigo) => {
+        return response.data.ListaTiposDocumento.TiposDocumento.TipoDocumento.find(
+          (tipo) => tipo.Codigo === codigo
+        );
+      });
+      setTiposNorma(uniqueTiposNorma);
+    } catch (error) {
+      console.error("Erro ao buscar tipos de norma:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTiposNorma();
   }, []);
 
   const handleClear = async () => {
-    setLoading(true);
     setTermos("");
-
+    setLoading(true);
+    
     try {
       const response = await getNormas({ tipo, ano, numero });
       if (
@@ -92,9 +95,8 @@ function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
   };
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
-
+    
     if (!ano && !numero) {
       Swal.fire({
         icon: "warning",
@@ -103,18 +105,19 @@ function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
       });
       return;
     }
-
+    
     if (termos) {
       const filteredResults = results.filter(
         (doc) =>
-          doc.ementa.includes(termos) ||
-          doc.descricao.includes(termos) ||
-          doc.normaNome.includes(termos)
-      );
-      setResults(filteredResults);
-      return;
-    }
-
+        doc.ementa.includes(termos) ||
+        doc.descricao.includes(termos) ||
+        doc.normaNome.includes(termos)
+        );
+        setResults(filteredResults);
+        return;
+      }
+      
+    setLoading(true);
     try {
       const response = await getNormas({ tipo, ano, numero });
       if (
