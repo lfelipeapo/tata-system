@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Dashboard from "../../components/layout/dashboard";
 import {
+  Box,
+  CircularProgress,
   Container,
   Typography,
   IconButton,
@@ -9,6 +11,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Paper,
@@ -50,8 +53,20 @@ const Clientes = () => {
   });
   const [searchParam, setSearchParam] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const fetchClientes = () => {
+    setLoading(true);
     fetch("http://localhost:5000/clientes")
       .then((response) => {
         if (response.status === 404) {
@@ -68,12 +83,13 @@ const Clientes = () => {
       .then((data) => {
         if (data && data.clientes) {
           setClientes(data.clientes);
-          setLoading(false);
         }
       })
       .catch((error) => {
         setClientes([]);
         Swal.fire("Erro", error.message, "error");
+      }).finally(()=>{
+        setLoading(false);
       });
   };
 
@@ -133,40 +149,43 @@ const Clientes = () => {
   };
 
   const handleSearch = async () => {
-  if (!searchParam || !searchValue) {
-    Swal.fire(
-      "Error",
-      "Por favor, selecione um parâmetro de pesquisa e digite um valor.",
-      "error"
-    );
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `http://localhost:5000/clientes?${searchParam}=${encodeURIComponent(
-        searchValue
-      )}`,
-      {
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Accept-Language": "pt-BR",
-        },
-      }
-    );
-    const data = await response.json();
-    if (data.mensagem) {
-      Swal.fire("Error", data.mensagem, "error");
-    } else {
-      if (data.clientes) {
-        setClientes(data.clientes);
-      } else {
-        setClientes([]);
-      }
-      }
-    } catch (error) {
-      Swal.fire("Error", error.message, "error");
+    setLoading(true);
+    if (!searchParam || !searchValue) {
+      Swal.fire(
+        "Error",
+        "Por favor, selecione um parâmetro de pesquisa e digite um valor.",
+        "error"
+      );
+      return;
     }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/clientes?${searchParam}=${encodeURIComponent(
+          searchValue
+        )}`,
+        {
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept-Language": "pt-BR",
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.mensagem) {
+        Swal.fire("Error", data.mensagem, "error");
+      } else {
+        if (data.clientes) {
+          setClientes(data.clientes);
+        } else {
+          setClientes([]);
+        }
+        }
+      } catch (error) {
+        Swal.fire("Error", error.message, "error");
+      } finally {
+        setLoading(false);
+      }
   };
 
   const handleInputChange = (e) => {
@@ -225,9 +244,14 @@ const Clientes = () => {
                   labelwidth={0}
                 />
               </FormControl>
-                <IconButton sx={{ m: 1.75}} color="secondary" edge="end" onClick={fetchClientes}>
-                  <CleaningServices />
-                </IconButton>
+              <IconButton
+                sx={{ m: 1.75 }}
+                color="secondary"
+                edge="end"
+                onClick={fetchClientes}
+              >
+                <CleaningServices />
+              </IconButton>
             </Grid>
             <Grid item>
               <Button
@@ -241,7 +265,11 @@ const Clientes = () => {
               </Button>
             </Grid>
           </Grid>
-          <Dialog className={styles.addCliente} open={open} onClose={handleClose}>
+          <Dialog
+            className={styles.addCliente}
+            open={open}
+            onClose={handleClose}
+          >
             <DialogTitle>Adicionar Cliente</DialogTitle>
             <DialogContent>
               <DialogContentText>
@@ -278,150 +306,191 @@ const Clientes = () => {
               </Button>
             </DialogActions>
           </Dialog>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>CPF</TableCell>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Cadastro</TableCell>
-                  <TableCell>Atualização</TableCell>
-                  <TableCell>Ação</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {clientes.length === 0 ? (
+          {loading ? (
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height="50vh"
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      Não existem clientes cadastrados
-                    </TableCell>
+                    <TableCell>ID</TableCell>
+                    <TableCell>CPF</TableCell>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Cadastro</TableCell>
+                    <TableCell>Atualização</TableCell>
+                    <TableCell>Ação</TableCell>
                   </TableRow>
-                ) : (
-                  clientes.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>
-                      {editingRow === row.id ? (
-                        <TextField
-                          value={edits[row.id]?.cpf_cliente || row.cpf_cliente}
-                          onChange={(e) =>
-                            handleEdit(row.id, "cpf_cliente", e.target.value)
-                          }
-                        />
-                      ) : (
-                        row.cpf_cliente
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingRow === row.id ? (
-                        <TextField
-                          value={
-                            edits[row.id]?.nome_cliente || row.nome_cliente
-                          }
-                          onChange={(e) =>
-                            handleEdit(row.id, "nome_cliente", e.target.value)
-                          }
-                        />
-                      ) : (
-                        row.nome_cliente
-                      )}
-                    </TableCell>
-                    <TableCell>{row.data_cadastro}</TableCell>
-                    <TableCell>{row.data_atualizacao}</TableCell>
-                    <TableCell>
-                      {editingRow === row.id ? (
-                        <React.Fragment>
-                          <IconButton
-                            onClick={async () => {
-                              const rowToUpdate = edits[row.id] || row;
-                              const response = await fetch(
-                                `http://localhost:5000/cliente`,
-                                {
-                                  method: "PUT",
-                                  body: JSON.stringify({
-                                    ...rowToUpdate,
-                                    cliente_id: editingRow,
-                                  }),
-                                  headers: {
-                                    "Content-Type":
-                                      "application/json; charset=utf-8",
-                                    "Accept-Language": "pt-BR",
-                                  },
-                                }
-                              );
-                              const data = await response.json();
-                              if (data.mensagem || data[0]?.msg) {
-                                Swal.fire(
-                                  "Error",
-                                  data.mensagem || data[0]?.msg,
-                                  "error"
-                                );
-                              } else {
-                                setEditingRow(null);
-                                Swal.fire(
-                                  "Success",
-                                  "Registro atualizado com sucesso!",
-                                  "success"
-                                );
-                                fetchClientes();
-                              }
-                            }}
-                          >
-                            <CheckIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => {
-                              setEditingRow(null);
-                            }}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        </React.Fragment>
-                      ) : (
-                        <React.Fragment>
-                          <IconButton
-                            onClick={() => {
-                              setEditingRow(row.id);
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={async () => {
-                              const response = await fetch(
-                                `http://localhost:5000/cliente?cliente_id=${row.id}`,
-                                {
-                                  method: "DELETE",
-                                }
-                              );
-                              const data = await response.json();
-                              if (data.mensagem) {
-                                Swal.fire("Error", data.mensagem, "error");
-                              } else {
-                                Swal.fire(
-                                  "Success",
-                                  "Registro deletado com sucesso!",
-                                  "success"
-                                );
-                                fetchClientes();
-                              }
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                          <IconButton>
-                            <DocumentUpload />
-                          </IconButton>
-                        </React.Fragment>
-                      )}
-                    </TableCell>
+                </TableHead>
+                <TableBody>
+                  {clientes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        Não existem clientes cadastrados
+                      </TableCell>
                     </TableRow>
-                  )
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  ) : (
+                    clientes
+                      .slice(
+                        page * rowsPerPage,
+                        page * rowsPerPage + rowsPerPage
+                      )
+                      .map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell>
+                            {editingRow === row.id ? (
+                              <TextField
+                                value={
+                                  edits[row.id]?.cpf_cliente || row.cpf_cliente
+                                }
+                                onChange={(e) =>
+                                  handleEdit(
+                                    row.id,
+                                    "cpf_cliente",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            ) : (
+                              row.cpf_cliente
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {editingRow === row.id ? (
+                              <TextField
+                                value={
+                                  edits[row.id]?.nome_cliente ||
+                                  row.nome_cliente
+                                }
+                                onChange={(e) =>
+                                  handleEdit(
+                                    row.id,
+                                    "nome_cliente",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            ) : (
+                              row.nome_cliente
+                            )}
+                          </TableCell>
+                          <TableCell>{row.data_cadastro}</TableCell>
+                          <TableCell>{row.data_atualizacao}</TableCell>
+                          <TableCell>
+                            {editingRow === row.id ? (
+                              <React.Fragment>
+                                <IconButton
+                                  onClick={async () => {
+                                    
+                                    const rowToUpdate = edits[row.id] || row;
+                                    const response = await fetch(
+                                      `http://localhost:5000/cliente`,
+                                      {
+                                        method: "PUT",
+                                        body: JSON.stringify({
+                                          ...rowToUpdate,
+                                          cliente_id: editingRow,
+                                        }),
+                                        headers: {
+                                          "Content-Type":
+                                            "application/json; charset=utf-8",
+                                          "Accept-Language": "pt-BR",
+                                        },
+                                      }
+                                    );
+                                    const data = await response.json();
+                                    if (data.mensagem || data[0]?.msg) {
+                                      Swal.fire(
+                                        "Error",
+                                        data.mensagem || data[0]?.msg,
+                                        "error"
+                                      );
+                                    } else {
+                                      setEditingRow(null);
+                                      Swal.fire(
+                                        "Success",
+                                        "Registro atualizado com sucesso!",
+                                        "success"
+                                      );
+                                      fetchClientes();
+                                    }
+                                  }}
+                                >
+                                  <CheckIcon />
+                                </IconButton>
+                                <IconButton
+                                  onClick={() => {
+                                    setEditingRow(null);
+                                  }}
+                                >
+                                  <CloseIcon />
+                                </IconButton>
+                              </React.Fragment>
+                            ) : (
+                              <React.Fragment>
+                                <IconButton
+                                  onClick={() => {
+                                    setEditingRow(row.id);
+                                  }}
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton
+                                  onClick={async () => {
+                                    const response = await fetch(
+                                      `http://localhost:5000/cliente?cliente_id=${row.id}`,
+                                      {
+                                        method: "DELETE",
+                                      }
+                                    );
+                                    const data = await response.json();
+                                    if (data.mensagem) {
+                                      Swal.fire(
+                                        "Error",
+                                        data.mensagem,
+                                        "error"
+                                      );
+                                    } else {
+                                      Swal.fire(
+                                        "Success",
+                                        "Registro deletado com sucesso!",
+                                        "success"
+                                      );
+                                      fetchClientes();
+                                    }
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                                <IconButton>
+                                  <DocumentUpload />
+                                </IconButton>
+                              </React.Fragment>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={clientes.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </TableContainer>
+          )}
         </Container>
       </div>
     </Dashboard>
