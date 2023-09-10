@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Dashboard from "../../components/layout/dashboard";
 import {
   Box,
@@ -42,6 +42,7 @@ import styles from "./styles.module.css"
 import DocumentUpload from "../../components/DocumentUpload";
 
 const Clientes = () => {
+  const [consultaId, setConsultaId] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [edits, setEdits] = useState({});
@@ -198,6 +199,35 @@ const Clientes = () => {
     });
   };
 
+  const verifyConsultaId = useCallback(async (nomeCliente) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/consultas?nome_cliente=${encodeURIComponent(
+          nomeCliente
+        )}`
+      );
+      const data = await response.json();
+
+      if (data && data.consultas.length > 0) {
+      return data.consultas[0].id;
+    } else {
+        Swal.fire("Erro!", "ID da consulta não encontrado.", "error");
+        return null;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar consultaId:", error);
+      Swal.fire(
+        "Erro!",
+        "Ocorreu um erro ao buscar o ID da consulta.",
+        "error"
+      );
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return (
     <Dashboard>
       <div style={{ minHeight: 600, width: "100%" }}>
@@ -221,7 +251,9 @@ const Clientes = () => {
                 >
                   <MenuItem value={"nome"}>Nome</MenuItem>
                   <MenuItem value={"cpf"}>CPF</MenuItem>
-                  <MenuItem value={"data_cadastro"}>Data de Cadastro</MenuItem>
+                  <MenuItem value={"data_cadastro"}>
+                    Data de Cadastro
+                  </MenuItem>
                   <MenuItem value={"data_atualizacao"}>
                     Data de Atualização
                   </MenuItem>
@@ -351,7 +383,8 @@ const Clientes = () => {
                             {editingRow === row.id ? (
                               <TextField
                                 value={
-                                  edits[row.id]?.cpf_cliente || row.cpf_cliente
+                                  edits[row.id]?.cpf_cliente ||
+                                  row.cpf_cliente
                                 }
                                 onChange={(e) =>
                                   handleEdit(
@@ -477,8 +510,18 @@ const Clientes = () => {
                                 >
                                   <DeleteIcon />
                                 </IconButton>
-                                <IconButton>
-                                  <DocumentUpload />
+                                  <IconButton onClick={
+                                    async () => {
+                                      let id = await verifyConsultaId(row.nome_cliente);
+                                      if (!!id) {
+                                        setConsultaId(id);
+                                      }
+                                  }}>
+                                  <DocumentUpload
+                                    nomeCliente={row.nome_cliente}
+                                    clienteId={row.id}
+                                    consultaId={consultaId}
+                                  />
                                 </IconButton>
                               </React.Fragment>
                             )}
