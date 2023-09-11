@@ -8,6 +8,6 @@
     z-index: 1500 !important;
   }
 
-  .addCliente, .addConsulta, .addUsuario {
+  .addCliente, .addConsulta, .addUsuario, .addDocumento {
     z-index: 1000 !important;
   }
