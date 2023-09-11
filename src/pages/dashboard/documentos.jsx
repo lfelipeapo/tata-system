@@ -150,9 +150,13 @@ const [clientes, setClientes] = useState([]);
   };
 
   const handleSave = async () => {
+    const documentoToSend = { ...newDocumento }
+    if (!documentoToSend.consulta_id) {
+        delete documentoToSend.consulta_id;
+    }
     const response = await fetch(`http://localhost:5000/documento`, {
       method: "POST",
-      body: JSON.stringify(newDocumento),
+      body: JSON.stringify(documentoToSend),
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Accept-Language": "pt-BR",
@@ -217,7 +221,7 @@ const [clientes, setClientes] = useState([]);
     };
 
     const handleDelete = async (id) => {
-      const response = await fetch(`http://localhost:5000/documento/${id}`, {
+      const response = await fetch('http://localhost:5000/documento?documento_id=' + id, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
