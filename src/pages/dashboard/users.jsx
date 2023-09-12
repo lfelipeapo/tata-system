@@ -71,6 +71,35 @@ const Users = () => {
     }
   };
 
+  const handleImageUpload = async (id, e, isNewUser = false) => {
+    const file = e.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("http://localhost:5000/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        console.log(data.url)
+        if (isNewUser) {
+          setNewUser({ ...newUser, image: data.url });
+        } else {
+          handleEdit(id, "image", data.url);
+          setEditedImages((state) => ({
+            ...state,
+            [id]: data.url,
+          }));
+        }
+      } else {
+        console.error("Erro ao fazer upload da imagem. URL não recebida.");
+      }
+    }
+  };
+
   const fetchUsers = () => {
     fetch("http://localhost:5000/users")
       .then((response) => {
@@ -291,7 +320,7 @@ const Users = () => {
                 style={{ display: "none" }}
                 id="raised-button-file"
                 type="file"
-                onChange={handleImageChange}
+                onChange={(e) => handleImageUpload(null, e, true)}
               />
               <label htmlFor="raised-button-file">
                 <Button variant="contained" color="secondary" component="span">
@@ -377,13 +406,7 @@ const Users = () => {
                               style={{ display: "none" }}
                               id={`raised-button-file-${row.id}`}
                               type="file"
-                              onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                  const imageUrl = URL.createObjectURL(file);
-                                  handleEdit(row.id, "image", imageUrl);
-                                }
-                              }}
+                              onChange={(e) => handleImageUpload(row.id, e)}
                             />
                             <label htmlFor={`raised-button-file-${row.id}`}>
                               <Button
@@ -421,7 +444,7 @@ const Users = () => {
                                 });
                               }}
                             >
-                             <PreviewIcon color="action" />
+                              <PreviewIcon color="action" />
                             </Button>
                           </React.Fragment>
                         )}
