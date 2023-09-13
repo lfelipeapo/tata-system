@@ -42,7 +42,6 @@ import styles from "./styles.module.css"
 import DocumentUpload from "../../components/DocumentUpload";
 
 const Clientes = () => {
-  const [consultaId, setConsultaId] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [edits, setEdits] = useState({});
@@ -198,35 +197,6 @@ const Clientes = () => {
       [e.target.name]: e.target.value,
     });
   };
-
-  const verifyConsultaId = useCallback(async (nomeCliente) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `http://localhost:5000/consultas?nome_cliente=${encodeURIComponent(
-          nomeCliente
-        )}`
-      );
-      const data = await response.json();
-
-      if (data && data.consultas.length > 0) {
-      return data.consultas[0].id;
-    } else {
-        Swal.fire("Erro!", "ID da consulta não encontrado.", "error");
-        return null;
-      }
-    } catch (error) {
-      console.error("Erro ao buscar consultaId:", error);
-      Swal.fire(
-        "Erro!",
-        "Ocorreu um erro ao buscar o ID da consulta.",
-        "error"
-      );
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   return (
     <Dashboard>
@@ -510,17 +480,10 @@ const Clientes = () => {
                                 >
                                   <DeleteIcon />
                                 </IconButton>
-                                  <IconButton onClick={
-                                    async () => {
-                                      let id = await verifyConsultaId(row.nome_cliente);
-                                      if (!!id) {
-                                        setConsultaId(id);
-                                      }
-                                  }}>
+                                  <IconButton>
                                   <DocumentUpload
                                     nomeCliente={row.nome_cliente}
                                     clienteId={row.id}
-                                    consultaId={consultaId}
                                   />
                                 </IconButton>
                               </React.Fragment>

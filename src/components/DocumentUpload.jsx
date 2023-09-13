@@ -5,17 +5,45 @@ import DriveFolderUploadIcon from "@mui/icons-material/DriveFolderUpload";
 import { useDropzone } from "react-dropzone";
 import Swal from "sweetalert2";
 
-const UploadButton = ({ nomeCliente, clienteId, consultaId }) => {
+const UploadButton = ({ nomeCliente, clienteId }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [consultaId, setConsultaId] = useState(null);
+
+  const verifyConsultaId = useCallback(async (nomeCliente) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/consultas?nome_cliente=${encodeURIComponent(
+          nomeCliente
+        )}`
+      );
+      const data = await response.json();
+
+      if (data && data.consultas && data.consultas.length > 0) {
+        return data.consultas[0].id;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar consultaId:", error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const onDrop = useCallback(
-    (acceptedFiles) => {
-      if (consultaId === undefined) {
-        Swal.fire(
-          "Erro!",
-          "Não foi possível encontrar o ID da consulta.",
-          "error"
-        );
-        return;
+    async (acceptedFiles) => {
+      if (acceptedFiles.length === 0) {
+        return false;
+      }
+
+      if (!consultaId || consultaId === undefined) {
+        let id = await verifyConsultaId(nomeCliente);
+        if (!id) {
+          setConsultaId(null);
+        }
+        setConsultaId(id);
       }
 
       Swal.fire({
@@ -83,6 +111,7 @@ const UploadButton = ({ nomeCliente, clienteId, consultaId }) => {
             setIsLoading(false);
           });
       });
+      return true;
     },
     [nomeCliente, consultaId]
   );
