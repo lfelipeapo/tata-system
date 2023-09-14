@@ -45,13 +45,16 @@ const [clientes, setClientes] = useState([]);
   const [edits, setEdits] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const [open, setOpen] = useState(false);
-  const [newDocumento, setNewDocumento] = useState({
+  const initialDocumento = {
+    documento: null,
     documento_nome: "",
     cliente_id: "",
     consulta_id: "",
     documento_localizacao: "",
     documento_url: "",
-  });
+    local_ou_samba: "",
+  };
+  const [newDocumento, setNewDocumento] = useState(initialDocumento);
   const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
@@ -137,23 +140,60 @@ const [clientes, setClientes] = useState([]);
     }).then((result) => {
       if (result.isConfirmed) {
         setOpen(false);
-        setNewDocumento({
-          documento_nome: "",
-          cliente_id: "",
-          consulta_id: "",
-          documento_localizacao: "",
-          documento_url: "",
-        });
+        setNewDocumento(initialDocumento);
         Swal.close();
       }
     });
   };
-
+  
   const handleSave = async () => {
-    const documentoToSend = { ...newDocumento }
-    if (!documentoToSend.consulta_id) {
-        delete documentoToSend.consulta_id;
+    const formData = new FormData();
+    formData.append("documento", newDocumento.documento);
+    formData.append("local_ou_samba", newDocumento.local_ou_samba);
+    formData.append("nome_cliente", getClienteNomeById(newDocumento.cliente_id));
+
+    const uploadResponse = await fetch("http://localhost:5000/documento/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const uploadData = await uploadResponse.json();
+
+    if (uploadResponse.status !== 200) {
+      Swal.fire("Erro", uploadData.mensagem || "Erro ao fazer upload do documento.", "error");
+      return;
     }
+
+    const { nome_arquivo, documento_url, documento_localizacao } = uploadData.detalhes;
+
+    let consultaId = null;
+    try {
+      const response = await fetch(`http://localhost:5000/consultas?nome_cliente=${getClienteNomeById(newDocumento.cliente_id)}`);
+      const data = await response.json();
+      consultaId = data.consulta_id;
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        Swal.fire("Erro", "Erro ao buscar consulta_id", "error");
+        return;
+      }
+    }
+
+    const documentoToSend = {
+      documento_nome: nome_arquivo,
+      cliente_id: newDocumento.cliente_id,
+      consulta_id: consultaId,
+    };
+
+    if (newDocumento.local_ou_samba === "samba") {
+      documentoToSend.documento_url = documento_url;
+    } else {
+      documentoToSend.documento_localizacao = documento_localizacao;
+    }
+
+    if (!documentoToSend.consulta_id) {
+      delete documentoToSend.consulta_id;
+    }
+
     const response = await fetch(`http://localhost:5000/documento`, {
       method: "POST",
       body: JSON.stringify(documentoToSend),
@@ -162,37 +202,24 @@ const [clientes, setClientes] = useState([]);
         "Accept-Language": "pt-BR",
       },
     });
-    const data = await response.json();
+
+    const responseData = await response.json();
+
     if (response.status === 200) {
-      if (data) {
-        Swal.fire("Success", "Documento cadastrado com sucesso!", "success");
-        setOpen(false);
-        fetchDocumentos();
-        setNewDocumento({
-          documento_nome: "",
-          cliente_id: "",
-          consulta_id: "",
-          documento_localizacao: "",
-          documento_url: "",
-        });
-      } else if (Array.isArray(data) && data[0]?.msg) {
-        const errorMsgs = data
-          .map((error) => `${error.loc.join(".")} : ${error.msg}`)
-          .join("\n");
-        Swal.fire("Erro", errorMsgs, "error");
-      }
-    } else if (response.status !== 200) {
-      Swal.fire("Erro", data.mensagem || data[0]?.msg, "error");
+      Swal.fire("Sucesso", "Documento atualizado com sucesso!", "success");
     } else {
-      Swal.fire("Erro", data.mensagem || "Unknown error", "error");
+      Swal.fire("Erro", responseData.mensagem || "Erro desconhecido", "error");
     }
-  };
+    setOpen(false);
+    setNewDocumento(initialDocumento);
+    fetchDocumentos();
+  }
 
   const handleInputChange = (e) => {
-    let { name, value } = e.target;
+    let { name, value, files } = e.target;
     setNewDocumento({
       ...newDocumento,
-      [name]: value,
+      [name]: name === 'documento'? files[0] : value,
     });
   };
     
@@ -466,6 +493,16 @@ const [clientes, setClientes] = useState([]);
             value={newDocumento.documento_nome}
             onChange={handleInputChange}
           />
+          <TextField
+            margin="dense"
+            id="documento"
+            label="Documento"
+            type="file"
+            fullWidth
+            variant="outlined"
+            name="documento"
+            onChange={handleInputChange}
+          />
           {/* <TextField
             margin="dense"
             id="cliente_id"
@@ -480,32 +517,37 @@ const [clientes, setClientes] = useState([]);
           <FormControl variant="outlined" fullWidth>
             <InputLabel id="cliente-label">Cliente</InputLabel>
             <Select
-                labelId="cliente-label"
-                id="cliente_id"
-                name="cliente_id"
-                value={newDocumento.cliente_id}
-                onChange={handleInputChange}
-                label="Cliente"
+              labelId="cliente-label"
+              id="cliente_id"
+              name="cliente_id"
+              value={newDocumento.cliente_id}
+              onChange={handleInputChange}
+              label="Cliente"
             >
-                {clientes.map(cliente => (
+              {clientes.map((cliente) => (
                 <MenuItem key={cliente.id} value={cliente.id}>
-                    {cliente.nome_cliente}
+                  {cliente.nome_cliente}
                 </MenuItem>
-                ))}
+              ))}
             </Select>
           </FormControl>
-          <TextField
-            margin="dense"
-            id="consulta_id"
-            label="Consulta ID"
-            type="text"
-            fullWidth
-            variant="outlined"
-            name="consulta_id"
-            value={newDocumento.consulta_id}
-            onChange={handleInputChange}
-          />
-          <TextField
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel id="local-ou-samba-label">
+              Localização do Documento
+            </InputLabel>
+            <Select
+              labelId="local-ou-samba-label"
+              id="local_ou_samba"
+              name="local_ou_samba"
+              value={newDocumento.local_ou_samba || ""}
+              onChange={handleInputChange}
+              label="Localização do Documento"
+            >
+              <MenuItem value="samba">Nuvem</MenuItem>
+              <MenuItem value="local">Local</MenuItem>
+            </Select>
+          </FormControl>
+          {/* <TextField
             margin="dense"
             id="documento_localizacao"
             label="Localização"
@@ -526,7 +568,7 @@ const [clientes, setClientes] = useState([]);
             name="documento_url"
             value={newDocumento.documento_url}
             onChange={handleInputChange}
-          />
+          /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
