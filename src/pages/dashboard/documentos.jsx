@@ -39,12 +39,13 @@ import { CleaningServices } from "@mui/icons-material";
 import styles from "./styles.module.css";
 
 const Documentos = () => {
-const [clientes, setClientes] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [edits, setEdits] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const [open, setOpen] = useState(false);
+  const [updatedDocumento, setUpdatedDocumento] = useState(null);
   const initialDocumento = {
     documento: null,
     documento_nome: "",
@@ -219,16 +220,45 @@ const [clientes, setClientes] = useState([]);
     let { name, value, files } = e.target;
     setNewDocumento({
       ...newDocumento,
-      [name]: name === 'documento'? files[0] : value,
+      [name]: name === 'documento' ? files[0] : value,
     });
   };
     
-    const handleUpdate = async (id) => {
-      const documentoToUpdate = {
-        ...documentos.find(doc => doc.id === id), 
-        ...edits[id],
-        id: id
-        };
+  const handleUpdate = async (id) => {
+    const documentoToUpdate = {
+      ...documentos.find(doc => doc.id === id), 
+      ...edits[id],
+      id: id
+    };
+    
+    
+    const formData = new FormData();
+    formData.append("documento", documentoToUpdate.documento);
+    formData.append("local_ou_samba", documentoToUpdate.local_ou_samba);
+    formData.append("nome_cliente", getClienteNomeById(documentoToUpdate.cliente_id));
+    formData.append("filename_antigo", documentoToUpdate.documento_nome);
+    
+    const uploadResponse = await fetch("http://localhost:5000/documento/armazenamento", {
+      method: "PUT",
+      body: formData,
+    });
+
+    const uploadData = await uploadResponse.json();
+
+    if (uploadResponse.status !== 200) {
+      Swal.fire("Erro", uploadData.mensagem || "Erro ao fazer upload do documento.", "error");
+      return;
+    }
+
+    if(uploadResponse.status === 200 && uploadData) {
+      let documentoNome = uploadData.detalhes.nome_arquivo;
+      let documentoLocalizacao = uploadData.detalhes?.documento_localizacao;
+      let documentoUrl = uploadData.detalhes?.documento_url;
+
+      documentoToUpdate.documento_nome = documentoNome;
+      documentoToUpdate.documento_localizacao = documentoLocalizacao ?? null;
+      documentoToUpdate.documento_url = documentoUrl ?? null;
+
       const response = await fetch(`http://localhost:5000/documento`, {
         method: "PUT",
         body: JSON.stringify(documentoToUpdate),
@@ -239,30 +269,92 @@ const [clientes, setClientes] = useState([]);
       });
       const data = await response.json();
       if (response.status === 200) {
-        Swal.fire("Sucesso", "Documento atualizado com sucesso!", "success");
+        Swal.fire("Sucesso", data.mensagem, "success");
         setEditingRow(null);
         fetchDocumentos();
       } else {
         Swal.fire("Erro", data.mensagem || "Erro desconhecido", "error");
       }
-    };
+    }
+  };
 
-    const handleDelete = async (id) => {
-      const response = await fetch('http://localhost:5000/documento?documento_id=' + id, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Accept-Language": "pt-BR",
-        },
-      });
+  const handleDelete = async (id) => {
+    const documentoToDelete = documentos.find((doc) => doc.id === id);
+
+    const result = await Swal.fire({
+      title: "Você deseja deletar o documento do armazenamento também?",
+      showDenyButton: true,
+      confirmButtonText: `Sim`,
+      denyButtonText: `Não`,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/documento/armazenamento`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+              "Accept-Language": "pt-BR",
+            },
+            body: JSON.stringify({
+              local_ou_samba: documentoToDelete.documento_localizacao ? 'local' : 'samba',
+              nome_cliente: getClienteNomeById(documentoToDelete.cliente_id), 
+              filename: documentoToDelete.documento_nome,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.status !== 200) {
+          Swal.fire(
+            "Erro",
+            data.mensagem || "Erro ao deletar o documento do armazenamento.",
+            "error"
+          );
+          return;
+        }
+
+        Swal.fire(
+          "Sucesso",
+          "Documento deletado do armazenamento com sucesso!",
+          "success"
+        );
+      } catch (error) {
+        Swal.fire(
+          "Erro",
+          "Erro ao deletar o documento do armazenamento.",
+          "error"
+        );
+      }
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/documento?documento_id=${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept-Language": "pt-BR",
+          },
+        }
+      );
+
       const data = await response.json();
+
       if (response.status === 200) {
         Swal.fire("Sucesso", "Documento excluído com sucesso!", "success");
         fetchDocumentos();
       } else {
         Swal.fire("Erro", data.mensagem || "Erro desconhecido", "error");
       }
-    };
+    } catch (error) {
+      Swal.fire("Erro", "Erro ao deletar o registro do documento.", "error");
+    }
+  };
 
   return (
     <Dashboard>
@@ -333,16 +425,13 @@ const [clientes, setClientes] = useState([]);
                   <TableRow key={documento.id}>
                     <TableCell>
                       {editingRow === documento.id ? (
-                        <TextField
-                          value={
-                            edits[documento.id]?.documento_nome ||
-                            documento.documento_nome
-                          }
+                        <input
+                          type="file"
                           onChange={(e) =>
                             handleEdit(
                               documento.id,
-                              "documento_nome",
-                              e.target.value
+                              "documento",
+                              e.target.files[0]
                             )
                           }
                         />
@@ -352,77 +441,26 @@ const [clientes, setClientes] = useState([]);
                     </TableCell>
                     <TableCell>
                       {editingRow === documento.id ? (
-                        <TextField
-                          value={
-                            edits[documento.id]?.cliente_id ||
-                            documento.cliente_id
-                          }
+                        <select
                           onChange={(e) =>
                             handleEdit(
                               documento.id,
-                              "cliente_id",
+                              "local_ou_samba",
                               e.target.value
                             )
                           }
-                        />
+                        >
+                          <option value="local" defaultValue>Local</option>
+                          <option value="samba">Samba</option>
+                        </select>
                       ) : (
                         getClienteNomeById(documento.cliente_id)
                       )}
                     </TableCell>
+                    <TableCell>{documento.consulta_id}</TableCell>
+                    <TableCell>{documento.documento_localizacao}</TableCell>
                     <TableCell>
-                      {editingRow === documento.id ? (
-                        <TextField
-                          value={
-                            edits[documento.id]?.consulta_id ||
-                            documento.consulta_id
-                          }
-                          onChange={(e) =>
-                            handleEdit(
-                              documento.id,
-                              "consulta_id",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        documento.consulta_id
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingRow === documento.id ? (
-                        <TextField
-                          value={
-                            edits[documento.id]?.documento_localizacao ||
-                            documento.documento_localizacao
-                          }
-                          onChange={(e) =>
-                            handleEdit(
-                              documento.id,
-                              "documento_localizacao",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        documento.documento_localizacao
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingRow === documento.id ? (
-                        <TextField
-                          value={
-                            edits[documento.id]?.documento_url ||
-                            documento.documento_url
-                          }
-                          onChange={(e) =>
-                            handleEdit(
-                              documento.id,
-                              "documento_url",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
+                      {
                         <a
                           href={documento.documento_url}
                           target="_blank"
@@ -430,7 +468,7 @@ const [clientes, setClientes] = useState([]);
                         >
                           <PreviewIcon />
                         </a>
-                      )}
+                      }
                     </TableCell>
                     <TableCell>
                       {editingRow === documento.id ? (
