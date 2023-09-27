@@ -8,6 +8,6 @@
     z-index: 1500 !important;
   }
 
-  .addCliente, .addConsulta, .addUsuario, .addDocumento {
+  .addCliente, .addConsulta, .addUsuario, .addDocumento, .addPeca {
     z-index: 1000 !important;
   }
