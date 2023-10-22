@@ -59,12 +59,33 @@ const Documentos = () => {
   const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
+    setLoading(true);
     fetch("http://localhost:5000/clientes")
-        .then(response => response.json())
-        .then(data => setClientes(data.clientes))
-        .catch(error => console.error("Erro ao buscar clientes:", error));
+      .then((response) => {
+        if (response.status === 404) {
+          setClientes([]);
+          return;
+        } else if (response.status !== 200) {
+          setClientes([]);
+          return response.json().then((data) => {
+            Swal.fire("Erro", data.mensagem || data[0]?.msg, "error");
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data && data.clientes) {
+          setClientes(data.clientes);
+        }
+      })
+      .catch((error) => {
+        setClientes([]);
+        Swal.fire("Erro", error.message, "error");
+      }).finally(() => {
+        setLoading(false);
+      });
   }, []);
-    
+  
   const getClienteNomeById = (id) => {
     const cliente = clientes?.find(cliente => cliente.id === id);
     return cliente ? cliente.nome_cliente : id;
