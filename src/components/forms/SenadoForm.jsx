@@ -17,7 +17,7 @@ import { getNormas, getTiposNorma } from "../../services/senadoService";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#f50057", // Cor secondary do MUI
+      main: "#f50057",
     },
   },
 });
@@ -56,43 +56,54 @@ function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
   }, []);
 
   const handleClear = async () => {
+  setLoading(true);
+  
+  if (!tipo || !ano || !numero || !termos) {
+    setTipo("");
+    setAno("");
+    setNumero("");
     setTermos("");
-    setLoading(true);
-    
-    try {
-      const response = await getNormas({ tipo, ano, numero });
-      if (
-        response &&
-        response.data &&
-        response.data.ListaDocumento &&
-        response.data.ListaDocumento.documentos &&
-        response.data.ListaDocumento.documentos.documento
-      ) {
-        setResults(response.data.ListaDocumento.documentos.documento);
-        Swal.fire({
-          icon: "success",
-          title: "Sucesso!",
-          text: "Dados carregados com sucesso.",
-        });
-      } else {
-        setResults([]);
-        Swal.fire({
-          icon: "info",
-          title: "Informação!",
-          text: "Não existem resultados para a pesquisa.",
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao buscar tipos de norma:", error);
+    setResults([]);
+    setLoading(false);
+    return;
+  }
+
+  setTermos("");
+  
+  try {
+    const response = await getNormas({ tipo, ano, numero });
+    if (
+      response &&
+      response.data &&
+      response.data.ListaDocumento &&
+      response.data.ListaDocumento.documentos &&
+      response.data.ListaDocumento.documentos.documento
+    ) {
+      setResults(response.data.ListaDocumento.documentos.documento);
       Swal.fire({
-        icon: "error",
-        title: "Erro!",
-        text: "Ocorreu um erro ao realizar a pesquisa.",
+        icon: "success",
+        title: "Sucesso!",
+        text: "Dados carregados com sucesso.",
       });
-    } finally {
-      setLoading(false);
+    } else {
+      setResults([]);
+      Swal.fire({
+        icon: "info",
+        title: "Informação!",
+        text: "Não existem resultados para a pesquisa.",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Erro ao buscar tipos de norma:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Erro!",
+      text: "Ocorreu um erro ao realizar a pesquisa.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -213,7 +224,7 @@ function SenadoForm({ results, setResults, termos, setTermos, setLoading }) {
                   Buscar
                 </Button>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{display: "flex", justifyContent: "flex-end"}}>
                 <Button
                   onClick={handleClear}
                   fullWidth
