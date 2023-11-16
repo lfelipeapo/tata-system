@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   tata-system:
     build:
@@ -7,8 +6,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tata-system.rule=Host(`thattasystem.com`)"
+      - "traefik.http.routers.tata-system.entrypoints=web"
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
