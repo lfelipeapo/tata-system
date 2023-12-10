@@ -16,6 +16,8 @@ O Thata System é um projeto de front-end desenvolvido como um MVP para a pós-g
 Para clonar o projeto citado acesse:
 <https://github.com/lfelipeapo/tata-system-api>
 
+### Nota2: Para terceira etapa do MVP (Front-End), não há a necessidade do uso da api. Dados mockados via json.
+
 ### Usando Docker Compose
 
 1. Clone o repositório para o seu ambiente local usando `git clone https://github.com/lfelipeapo/tata-system.git`.
