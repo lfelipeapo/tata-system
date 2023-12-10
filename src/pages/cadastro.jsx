@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Swal from "sweetalert2";
 import { Typography, Container, Box, Grid } from "@mui/material";
+import TextFieldComponent from "../components/inputs/TextFieldComponent";
+import SubmitButtonComponent from "../components/buttons/SubmitButtonComponent";
+import swalAlert from "../components/alerts/Alert";
 
 export default function CreateUser() {
   const [username, setUsername] = useState("");
@@ -35,13 +35,13 @@ export default function CreateUser() {
       const data = await response.json();
 
       if (response.ok) {
-        Swal.fire("Success", "Usuário criado com sucesso!", "success");
+        swalAlert("Success", "Usuário criado com sucesso!", "success");
         router.push("/");
       } else {
-        Swal.fire("Error", data.mensagem || "Erro ao criar usuário", "error");
+        swalAlert("Error", data.mensagem || "Erro ao criar usuário", "error");
       }
     } catch (error) {
-      Swal.fire("Error", "Erro ao criar usuário: " + error.message, "error");
+      swalAlert("Error", "Erro ao criar usuário: " + error.message, "error");
     } finally {
       setIsLoading(false);
     }
@@ -63,31 +63,25 @@ export default function CreateUser() {
       <Box component="form" onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <TextField
+            <TextFieldComponent
               label="Usuário"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              fullWidth
-              color="secondary"
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
+            <TextFieldComponent
               label="Senha"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              color="secondary"
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
+            <TextFieldComponent
               label="Nome"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              fullWidth
-              color="secondary"
             />
           </Grid>
           <Grid item xs={12}>
@@ -106,15 +100,7 @@ export default function CreateUser() {
             {image && <img src={image} alt="preview" />}
           </Grid>
           <Grid item xs={12}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="secondary"
-              fullWidth
-              disabled={isLoading}
-            >
-              {isLoading ? <CircularProgress size={24} /> : "Criar Usuário"}
-            </Button>
+            <SubmitButtonComponent isLoading={isLoading} text="Criar Usuário" />
           </Grid>
         </Grid>
       </Box>
