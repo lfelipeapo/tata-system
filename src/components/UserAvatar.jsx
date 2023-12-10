@@ -11,16 +11,16 @@ export default function UserAvatar() {
   const [user, setUser] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userId = Cookies.get("ui");
-      const response = await fetch(`http://localhost:5000/user?id=${userId}`);
-      const data = await response.json();
-      setUser(data);
-    };
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     const userId = Cookies.get("ui");
+  //     const response = await fetch(`http://localhost:5000/user?id=${userId}`);
+  //     const data = await response.json();
+  //     setUser(data);
+  //   };
 
-    fetchUser();
-  }, []);
+  //   fetchUser();
+  // }, []);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
