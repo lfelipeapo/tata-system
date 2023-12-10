@@ -67,31 +67,33 @@ const Clientes = () => {
 
   const fetchClientes = () => {
     setLoading(true);
-    fetch("http://localhost:5000/clientes")
-      .then((response) => {
-        if (response.status === 404) {
-          setClientes([]);
-          return;
-        } else if (response.status !== 200) {
-          setClientes([]);
-          return response.json().then((data) => {
-            Swal.fire("Erro", data.mensagem || data[0]?.msg, "error");
-          });
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data && data.clientes) {
-          setClientes(data.clientes);
-        }
-      })
-      .catch((error) => {
-        setClientes([]);
-        Swal.fire("Erro", error.message, "error");
-      }).finally(()=>{
-        setLoading(false);
-      });
+
+    // Dados mockados para simular a resposta do servidor
+    const mockClientes = [
+      { id: 1, nome_cliente: "Cliente 1", cpf_cliente: "123.456.789-00", data_cadastro: "2023-01-01", data_atualizacao: "2023-01-02" },
+      { id: 2, nome_cliente: "Cliente 2", cpf_cliente: "123.456.789-01", data_cadastro: "2023-01-02", data_atualizacao: "2023-01-03" },
+      // Adicione mais clientes conforme necessário
+    ];
+
+    // Comente a requisição real para usar os dados mockados
+    // fetch("http://localhost:5000/clientes")
+    //   .then((response) => {
+    //     // Código da requisição real
+    //   })
+    //   .catch((error) => {
+    //     // Código da requisição real
+    //   }).finally(()=>{
+    //     setLoading(false);
+    //   });
+
+    // Usando os dados mockados no lugar da resposta real
+    setClientes(mockClientes);
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchClientes();
+  }, []);
 
   useEffect(() => {
     fetchClientes();

@@ -6,7 +6,8 @@ const ProtectedRoute = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = Cookies.get("token");
+    const token = "mockToken12345";
+    //const token = Cookies.get("token");
 
     if (!token) {
       router.push("/");
@@ -20,7 +21,8 @@ export default ProtectedRoute;
 
 export async function getServerSideProps(context) {
   const { req } = context;
-  const token = req.cookies.token;
+  const token = "mockToken12345";
+  //const token = req.cookies.token;
 
   if (!token) {
     return {

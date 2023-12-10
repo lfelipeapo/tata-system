@@ -35,46 +35,38 @@ export default function SignIn() {
 
     setIsLoading(true);
 
-    try {
-      const response = await fetch(`http://localhost:5000/user/authenticate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
-      });
+    // Simulando uma resposta do servidor com um mock JSON
+    const mockResponse = {
+      ok: true,
+      user_id: "12345", // Exemplo de ID de usuário retornado
+      token: "fakeToken12345", // Exemplo de token retornado
+    };
 
-      const data = await response.json();
+    try {
+      // Comente a requisição real para usar o mock
+      // const response = await fetch(`http://localhost:5000/user/authenticate`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     username: username,
+      //     password: password,
+      //   }),
+      // });
+
+      // const data = await response.json();
+
+      // Usando o mockResponse no lugar da resposta real
+      const response = { ok: mockResponse.ok };
+      const data = mockResponse;
 
       if (response.ok) {
         Cookies.set("ui", data.user_id);
         Cookies.set("token", data.token);
         router.push("/dashboard");
       } else {
-        let errorMessage;
-        if (response.status === 400) {
-          errorMessage = "Falha na autenticação: " + data.mensagem;
-        } else if (response.status === 401) {
-          errorMessage = "Falha na autenticação: " + data.mensagem;
-        } else if (response.status === 422) {
-          errorMessage = "Falha na autenticação: ";
-          if (data.mensagem) {
-            errorMessage += data.mensagem;
-          } else if (
-            Array.isArray(data) &&
-            data.some((el) => el.msg && el.loc)
-          ) {
-            data.forEach((error) => {
-              errorMessage += `Campo ${error.loc.join(", ")}: ${error.msg}. `;
-            });
-          } else {
-            errorMessage += "Erros de validação não especificados.";
-          }
-        }
-        swalAlert("Erro", errorMessage, "error");
+        //Não adicionei tratamentos de erro
       }
     } catch (error) {
       swalAlert("Erro", "Erro ao autenticar: " + error.message, "error");
