@@ -40,6 +40,7 @@ import Swal from "sweetalert2";
 import { CleaningServices } from "@mui/icons-material";
 import styles from "./styles.module.css"
 import DocumentUpload from "../../components/DocumentUpload";
+import swalAlert from "../../components/alerts/Alert";
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
@@ -143,19 +144,19 @@ const Clientes = () => {
     });
     const data = await response.json();
     if (data.mensagem || data[0]?.msg) {
-      Swal.fire("Error", data.mensagem || data[0]?.msg, "error");
+      swalAlert("Error", data.mensagem || data[0]?.msg, "error");
       setLoading(false);
     } else {
       setOpen(false);
       setLoading(false);
-      Swal.fire("Success", "Cliente adicionado com sucesso!", "success");
+      swalAlert("Success", "Cliente adicionado com sucesso!", "success");
       fetchClientes();
     }
   };
 
   const handleSearch = async () => {
     if (!searchParam || !searchValue) {
-      Swal.fire(
+      swalAlert(
         "Error",
         "Por favor, selecione um parâmetro de pesquisa e digite um valor.",
         "error"
@@ -178,7 +179,7 @@ const Clientes = () => {
       );
       const data = await response.json();
       if (data.mensagem) {
-        Swal.fire("Error", data.mensagem, "error");
+        swalAlert("Error", data.mensagem, "error");
       } else {
         if (data.clientes) {
           setClientes(data.clientes);
@@ -187,7 +188,7 @@ const Clientes = () => {
         }
         }
       } catch (error) {
-        Swal.fire("Error", error.message, "error");
+        swalAlert("Error", error.message, "error");
       } finally {
         setLoading(false);
       }
@@ -415,7 +416,7 @@ const Clientes = () => {
                                     );
                                     const data = await response.json();
                                     if (data.mensagem || data[0]?.msg) {
-                                      Swal.fire(
+                                      swalAlert(
                                         "Error",
                                         data.mensagem || data[0]?.msg,
                                         "error"
@@ -423,7 +424,7 @@ const Clientes = () => {
                                       setLoading(false);
                                     } else {
                                       setEditingRow(null);
-                                      Swal.fire(
+                                      swalAlert(
                                         "Success",
                                         "Registro atualizado com sucesso!",
                                         "success"
@@ -463,14 +464,14 @@ const Clientes = () => {
                                     );
                                     const data = await response.json();
                                     if (data.mensagem) {
-                                      Swal.fire(
+                                      swalAlert(
                                         "Error",
                                         data.mensagem,
                                         "error"
                                       );
                                       setLoading(false);
                                     } else {
-                                      Swal.fire(
+                                      swalAlert(
                                         "Success",
                                         "Registro deletado com sucesso!",
                                         "success"
