@@ -26,6 +26,13 @@ export default function SignIn() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!username.trim() || !password.trim()) {
+      swalAlert("Erro", "Usuário e senha são obrigatórios", "error");
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
