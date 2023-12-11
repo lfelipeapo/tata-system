@@ -6,10 +6,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.tata-system.rule=Host(`thattasystem.com`)"
-      - "traefik.http.routers.tata-system.entrypoints=web"
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
